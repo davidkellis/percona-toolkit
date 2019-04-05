@@ -12,6 +12,14 @@
 # echo "percona-server-server-5.6 percona-server-server/root_password_again password $dbpass" | sudo debconf-set-selections
 # sudo apt-get install percona-server-server-5.6 --assume-yes
 
+# install dependencies
+echo "Installing dependencies"
+sudo apt-get update --assume-yes
+sudo apt-get dist-upgrade --assume-yes
+sudo apt-get install libaio1 libaio-dev
+sudo apt-get install libdbi-perl
+sudo apt-get install libdbd-mysql-perl
+
 export HOME=/home/vagrant
 
 echo "Cloning percona-toolkit into ${HOME}/perldev"
@@ -20,14 +28,14 @@ git clone https://github.com/davidkellis/percona-toolkit.git ${HOME}/perldev/per
 
 echo "Setup mysql sandbox"
 mkdir -p ${HOME}/mysql/percona-server
-wget http://www.percona.com/downloads/Percona-Server-5.6/Percona-Server-5.6.24-72.2/binary/tarball/Percona-Server-5.6.24-rel72.2-Linux.x86_64.ssl100.tar.gz
-tar xvzf Percona-Server-5.6.24-rel72.2-Linux.x86_64.ssl100.tar.gz --strip 1 -C ${HOME}/mysql/percona-server
+wget https://www.percona.com/downloads/Percona-Server-5.6/Percona-Server-5.6.43-84.3/binary/tarball/Percona-Server-5.6.43-rel84.3-Linux.x86_64.ssl100.tar.gz
+tar xvzf Percona-Server-5.6.43-rel84.3-Linux.x86_64.ssl100.tar.gz --strip 1 -C ${HOME}/mysql/percona-server
 
 export PERCONA_TOOLKIT_BRANCH=${HOME}/perldev/percona-toolkit
 export PERL5LIB=${HOME}/perldev/percona-toolkit/lib
 export PERCONA_TOOLKIT_SANDBOX=${HOME}/mysql/percona-server
 
-# echo "Start mysql sandbox"
+echo "Start mysql sandbox"
 cd ${HOME}/perldev/percona-toolkit
 sandbox/test-env start
 
