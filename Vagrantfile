@@ -73,5 +73,4 @@ Vagrant.configure("2") do |config|
   # SHELL
 
   config.vm.provision :shell, :path => "vagrant_bootstrap.sh"
-  # config.vm.synced_folder ".", "/home/vagrant/percona-toolkit"
 end
