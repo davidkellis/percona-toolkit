@@ -16,6 +16,8 @@ Vagrant.configure("2") do |config|
 
   config.vm.hostname = "percona-dev"
 
+  # config.ssh.username = "vagrant"
+
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.
@@ -55,7 +57,8 @@ Vagrant.configure("2") do |config|
     vb.gui = false
   
     # Customize the amount of memory on the VM:
-    vb.memory = "2048"
+    vb.memory = "4096"
+    vb.cpus = 4
   end
   #
   # View the documentation for the provider you are using for more
@@ -70,4 +73,5 @@ Vagrant.configure("2") do |config|
   # SHELL
 
   config.vm.provision :shell, :path => "vagrant_bootstrap.sh"
+  # config.vm.synced_folder ".", "/home/vagrant/percona-toolkit"
 end
