@@ -21,3 +21,5 @@ src/go/*.bak
 config/deb/control.bak
 config/rpm/percona-toolkit.spec.bak
 config/sphinx-build/percona-theme/*
+.vagrant
+blib

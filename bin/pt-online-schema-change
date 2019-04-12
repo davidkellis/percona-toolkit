@@ -8281,6 +8281,7 @@ my $dont_interrupt_now = 0;
 my @drop_trigger_sqls;
 my @triggers_not_dropped;
 my $pxc_version = '0';
+my $reconnect_retry_count = 1;
 
 my $triggers_info = [];
 
@@ -8384,6 +8385,8 @@ sub main {
    if ( $EVAL_ERROR ) {
       $o->save_error($EVAL_ERROR);
    }
+
+   $reconnect_retry_count = $o->get('reconnect') || $reconnect_retry_count;
 
    if ( !$o->get('drop-triggers') ) {
       $o->set('drop-old-table', 0);
@@ -11345,6 +11348,7 @@ sub osc_retry {
    my $code          = $args{code};
    my $stats         = $args{stats};
    my $ignore_errors = $args{ignore_errors};
+   my $reconnect_attempts = 0;
 
    return $retry->retry(
       tries => $tries->{tries},
@@ -11380,7 +11384,17 @@ sub osc_retry {
             # The 1st pattern means that MySQL itself died or was stopped.
             # The 2nd pattern means that our cxn was killed (KILL <id>).
             $stats->{ error_event($error) }++;
-            $cxn->connect();  # connect or die trying
+            $reconnect_attempts++;
+
+            eval { $cxn->connect() };  # try to reconnect
+            if ( $EVAL_ERROR ) {
+               if ($reconnect_attempts <= $reconnect_retry_count) {
+                  print ts("Failed to reconnect. Attempting to reconnect. Try #$reconnect_attempts\n");
+                  return 1;  # try again
+               } else {
+                  die "Cannot connect to MySQL: $EVAL_ERROR\n";
+               }
+            }
             return 1;  # reconnected, try again
          }
 
@@ -12712,6 +12726,23 @@ In the case of lost and killed connections, the tool will automatically
 reconnect.
 
 Failures and retries are recorded in the L<"--statistics">.
+
+=item --reconnect
+
+type: int; default: 1
+
+This value represents the maximum number of times the tool should attempt to 
+reconnect to the database during one of the critical operations identified in 
+the L<"--tries"> documentation.
+
+Upon being unexpectedly disconnected from the database during one of the
+critical operations, the tool will repeatedly try to reconnect to the database
+until exceeding whatever retry limit is specified by the --reconnect value.
+
+If the tool fails to reconnect after retrying the maximum number of times
+specified by the --reconnect value, then the tool will fail.
+
+--reconnect 10  # this will attempt up to 10 reconnect retries
 
 =item --user
 
